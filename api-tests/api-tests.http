@@ -1,0 +1,31 @@
+
+### 01 - Authorization
+POST http://localhost:4111/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin"
+}
+
+
+### 02 - Create User
+POST http://localhost:4111/api/v1/admin/users
+Authorization: Basic YWRtaW46YWRtaW4=
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "password": "Test1234$",
+  "role": "USER"
+}
+
+
+### 03 - Create Account
+POST http://localhost:4111/api/v1/accounts
+Authorization: Basic dGVzdHVzZXI6VGVzdDEyMzQk
+
+
+### 04 - Get Accounts
+GET http://localhost:4111/api/v1/customer/accounts
+Authorization: Basic dGVzdHVzZXI6VGVzdDEyMzQk
