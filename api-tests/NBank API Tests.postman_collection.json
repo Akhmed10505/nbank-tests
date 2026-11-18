@@ -7,154 +7,928 @@
   },
   "item": [
     {
-      "name": "01 - Authorization",
-      "request": {
-        "method": "POST",
-        "header": [],
-        "body": {
-          "mode": "raw",
-          "raw": "{\r\n  \"username\": \"admin\",\r\n  \"password\": \"admin\"\r\n}",
-          "options": {
-            "raw": {
-              "language": "json"
+      "name": "Iteration 1",
+      "item": [
+        {
+          "name": "01 - Authorization",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"username\": \"admin\",\r\n  \"password\": \"admin\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4111/api/v1/auth/login",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4111",
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
             }
-          }
+          },
+          "response": []
         },
-        "url": {
-          "raw": "http://localhost:4111/api/v1/auth/login",
-          "protocol": "http",
-          "host": [
-            "localhost"
-          ],
-          "port": "4111",
-          "path": [
-            "api",
-            "v1",
-            "auth",
-            "login"
-          ]
+        {
+          "name": "02 - Create User",
+          "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "admin",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "admin",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"username\": \"testuser\",\r\n  \"password\": \"Test1234$\",\r\n  \"role\": \"USER\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4111/api/v1/admin/users",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4111",
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "users"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Account",
+          "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "testuser",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "Test1234$",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:4111/api/v1/accounts",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4111",
+              "path": [
+                "api",
+                "v1",
+                "accounts"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Accounts",
+          "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "testuser",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "Test1234$",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4111/api/v1/customer/accounts",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4111",
+              "path": [
+                "api",
+                "v1",
+                "customer",
+                "accounts"
+              ]
+            }
+          },
+          "response": []
         }
-      },
-      "response": []
+      ]
     },
     {
-      "name": "02 - Create User",
-      "request": {
-        "auth": {
-          "type": "basic",
-          "basic": [
-            {
-              "key": "username",
-              "value": "admin",
-              "type": "string"
+      "name": "Iteration 2",
+      "item": [
+        {
+          "name": "01 - Deposit - Positive - Valid Amount",
+          "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "testuser",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "Test1234$",
+                  "type": "string"
+                }
+              ]
             },
-            {
-              "key": "password",
-              "value": "admin",
-              "type": "string"
-            }
-          ]
-        },
-        "method": "POST",
-        "header": [],
-        "body": {
-          "mode": "raw",
-          "raw": "{\r\n  \"username\": \"testuser\",\r\n  \"password\": \"Test1234$\",\r\n  \"role\": \"USER\"\r\n}",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
-        },
-        "url": {
-          "raw": "http://localhost:4111/api/v1/admin/users",
-          "protocol": "http",
-          "host": [
-            "localhost"
-          ],
-          "port": "4111",
-          "path": [
-            "api",
-            "v1",
-            "admin",
-            "users"
-          ]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "Create Account",
-      "request": {
-        "auth": {
-          "type": "basic",
-          "basic": [
-            {
-              "key": "username",
-              "value": "testuser",
-              "type": "string"
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"id\": 1,\r\n  \"balance\": 100.5\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
-            {
-              "key": "password",
-              "value": "Test1234$",
-              "type": "string"
+            "url": {
+              "raw": "http://localhost:4111/api/v1/accounts/deposit",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4111",
+              "path": [
+                "api",
+                "v1",
+                "accounts",
+                "deposit"
+              ]
             }
-          ]
+          },
+          "response": []
         },
-        "method": "POST",
-        "header": [],
-        "url": {
-          "raw": "http://localhost:4111/api/v1/accounts",
-          "protocol": "http",
-          "host": [
-            "localhost"
-          ],
-          "port": "4111",
-          "path": [
-            "api",
-            "v1",
-            "accounts"
-          ]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "Get Accounts",
-      "request": {
-        "auth": {
-          "type": "basic",
-          "basic": [
-            {
-              "key": "username",
-              "value": "testuser",
-              "type": "string"
+        {
+          "name": "02 - Deposit - Negative - Zero Amount",
+          "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "testuser",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "Test1234$",
+                  "type": "string"
+                }
+              ]
             },
-            {
-              "key": "password",
-              "value": "Test1234$",
-              "type": "string"
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"id\": 1,\r\n  \"balance\": 0\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4111/api/v1/accounts/deposit",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4111",
+              "path": [
+                "api",
+                "v1",
+                "accounts",
+                "deposit"
+              ]
             }
-          ]
+          },
+          "response": []
         },
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "http://localhost:4111/api/v1/customer/accounts",
-          "protocol": "http",
-          "host": [
-            "localhost"
-          ],
-          "port": "4111",
-          "path": [
-            "api",
-            "v1",
-            "customer",
-            "accounts"
-          ]
+        {
+          "name": "03 - Deposit - Negative - Below Minimum",
+          "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "testuser",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "Test1234$",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"id\": 1,\r\n  \"balance\": 0.001\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4111/api/v1/accounts/deposit",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4111",
+              "path": [
+                "api",
+                "v1",
+                "accounts",
+                "deposit"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "04 - Deposit - Positive - Minimum Amount",
+          "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "testuser",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "Test1234$",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"id\": 1,\r\n  \"balance\": 0.01\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4111/api/v1/accounts/deposit",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4111",
+              "path": [
+                "api",
+                "v1",
+                "accounts",
+                "deposit"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "05 - Deposit - Positive - Maximum Amount",
+          "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "testuser",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "Test1234$",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"id\": 1,\r\n  \"balance\": 5000\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4111/api/v1/accounts/deposit",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4111",
+              "path": [
+                "api",
+                "v1",
+                "accounts",
+                "deposit"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "06 - Deposit - Negative - Above Maximum",
+          "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "testuser",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "Test1234$",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"id\": 1,\r\n  \"balance\": 5000.01\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4111/api/v1/accounts/deposit",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4111",
+              "path": [
+                "api",
+                "v1",
+                "accounts",
+                "deposit"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "07 - Deposit - Negative - Negative Amount",
+          "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "testuser",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "Test1234$",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"id\": 1,\r\n  \"balance\": -1\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4111/api/v1/accounts/deposit",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4111",
+              "path": [
+                "api",
+                "v1",
+                "accounts",
+                "deposit"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "08 - Deposit - Negative - Missing Balance",
+          "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "testuser",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "Test1234$",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"id\": 1\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4111/api/v1/accounts/deposit",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4111",
+              "path": [
+                "api",
+                "v1",
+                "accounts",
+                "deposit"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "09 - Deposit - Negative - Missing ID",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"balance\": 100\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4111/api/v1/accounts/deposit",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4111",
+              "path": [
+                "api",
+                "v1",
+                "accounts",
+                "deposit"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "01 — Transfer — Positive — Valid Amount",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"senderAccountId\": 1,\r\n  \"receiverAccountId\": 2,\r\n  \"amount\": 250.75\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4111/api/v1/accounts/transfer",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4111",
+              "path": [
+                "api",
+                "v1",
+                "accounts",
+                "transfer"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "02 — Transfer — Positive — Minimum Amount",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"senderAccountId\": 1,\r\n  \"receiverAccountId\": 2,\r\n  \"amount\": 0.01\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4111/api/v1/accounts/transfer",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4111",
+              "path": [
+                "api",
+                "v1",
+                "accounts",
+                "transfer"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "03 — Transfer — Positive — Maximum Amount",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"senderAccountId\": 1,\r\n  \"receiverAccountId\": 2,\r\n  \"amount\": 10000\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4111/api/v1/accounts/transfer",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4111",
+              "path": [
+                "api",
+                "v1",
+                "accounts",
+                "transfer"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "04 — Transfer — Negative — Zero Amount",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"senderAccountId\": 1,\r\n  \"receiverAccountId\": 2,\r\n  \"amount\": 0\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4111/api/v1/accounts/transfer",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4111",
+              "path": [
+                "api",
+                "v1",
+                "accounts",
+                "transfer"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "05 — Transfer — Negative — Below Minimum",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"senderAccountId\": 1,\r\n  \"receiverAccountId\": 2,\r\n  \"amount\": 0.001\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4111/api/v1/accounts/transfer",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4111",
+              "path": [
+                "api",
+                "v1",
+                "accounts",
+                "transfer"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "06 — Transfer — Negative — Above Maximum",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"senderAccountId\": 1,\r\n  \"receiverAccountId\": 2,\r\n  \"amount\": 10000.01\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4111/api/v1/accounts/transfer",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4111",
+              "path": [
+                "api",
+                "v1",
+                "accounts",
+                "transfer"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "07 — Transfer — Negative — Negative Amount",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"senderAccountId\": 1,\r\n  \"receiverAccountId\": 2,\r\n  \"amount\": -1\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4111/api/v1/accounts/transfer",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4111",
+              "path": [
+                "api",
+                "v1",
+                "accounts",
+                "transfer"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "08 — Transfer — Negative — Insufficient Funds",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"senderAccountId\": 1,\r\n  \"receiverAccountId\": 2,\r\n  \"amount\": 6000\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4111/api/v1/accounts/transfer",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4111",
+              "path": [
+                "api",
+                "v1",
+                "accounts",
+                "transfer"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "09 — Transfer — Negative — Invalid Sender Account",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"senderAccountId\": 999,\r\n  \"receiverAccountId\": 2,\r\n  \"amount\": 100\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4111/api/v1/accounts/transfer",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4111",
+              "path": [
+                "api",
+                "v1",
+                "accounts",
+                "transfer"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "10 — Transfer — Negative — Invalid Receiver Account",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"senderAccountId\": 1,\r\n  \"receiverAccountId\": 999,\r\n  \"amount\": 100\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4111/api/v1/accounts/transfer",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4111",
+              "path": [
+                "api",
+                "v1",
+                "accounts",
+                "transfer"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "11 - Transfer - Positive - Same Account",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"senderAccountId\": 1,\r\n  \"receiverAccountId\": 1,\r\n  \"amount\": 100\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4111/api/v1/accounts/transfer",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4111",
+              "path": [
+                "api",
+                "v1",
+                "accounts",
+                "transfer"
+              ]
+            }
+          },
+          "response": []
         }
-      },
-      "response": []
+      ]
     }
-  ]
+  ],
+  "auth": {
+    "type": "basic",
+    "basic": [
+      {
+        "key": "username",
+        "value": "testuser",
+        "type": "string"
+      },
+      {
+        "key": "password",
+        "value": "Test1234$",
+        "type": "string"
+      }
+    ]
+  }
 }
