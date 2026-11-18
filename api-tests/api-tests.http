@@ -279,3 +279,59 @@ Content-Type: application/json
   "amount": 100
 }
 
+
+### 01 - Update Customer Profile - Positive - Valid Two-Word Name
+### 01 - Обновление профиля - Позитивный - Корректное имя из двух слов
+PUT http://localhost:4111/api/v1/customer/profile
+Authorization: Basic dGVzdHVzZXI6VGVzdDEyMzQk
+Content-Type: application/json
+
+{
+  "name": "John Smith"
+}
+
+
+### 02 - Update Customer Profile - Negative - Single Word
+### 02 - Обновление профиля - Негативный - Имя из одного слова
+PUT http://localhost:4111/api/v1/customer/profile
+Authorization: Basic dGVzdHVzZXI6VGVzdDEyMzQk
+Content-Type: application/json
+
+{
+  "name": "John"
+}
+
+
+### 03 - Update Customer Profile - Negative - Three Words
+### 03 - Обновление профиля - Негативный - Имя из трёх слов
+PUT http://localhost:4111/api/v1/customer/profile
+Authorization: Basic dGVzdHVzZXI6VGVzdHVzZXI6VGVzdDEyMzQk
+Content-Type: application/json
+
+{
+  "name": "John Michael Smith"
+}
+
+
+### 04 - Update Customer Profile - Negative - Name with Numbers
+### 04 - Обновление профиля - Негативный - Имя с цифрами
+PUT http://localhost:4111/api/v1/customer/profile
+Authorization: Basic dGVzdHVzZXI6VGVzdDEyMzQk
+Content-Type: application/json
+
+{
+  "name": "John123 Smith"
+}
+
+
+### 05 - Update Customer Profile - Negative - Name with Multiple Spaces
+### 05 - Обновление профиля - Негативный - Имя с несколькими пробелами
+PUT http://localhost:4111/api/v1/customer/profile
+Authorization: Basic dGVzdHVzZXI6VGVzdDEyMzQk
+Content-Type: application/json
+
+{
+  "name": "John  Smith"
+}
+
+
