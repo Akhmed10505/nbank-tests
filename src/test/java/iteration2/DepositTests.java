@@ -12,7 +12,7 @@ import java.util.List;
 
 import static io.restassured.RestAssured.given;
 
-public class DepositTest {
+public class DepositTests {
 
     @BeforeAll
     public static void setupRestAssured() {
