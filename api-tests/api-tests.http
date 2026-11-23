@@ -381,4 +381,14 @@ Content-Type: application/json
   "name": "John  Smith"
 }
 
+### 06 - Update Customer Profile - Negative - Name with Special Character
+### 06 - Обновление профиля - Негативный - Имя со специальным символом
+PUT http://localhost:4111/api/v1/customer/profile
+Authorization: Basic dGVzdHVzZXI6VGVzdDEyMzQk
+Content-Type: application/json
+
+{
+  "name": "John@ Smith"
+}
+
 

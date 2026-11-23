@@ -1191,6 +1191,37 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "06 - Update Customer Profile - Negative - Name with Special Character",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"name\": \"John@ Smith\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4111/api/v1/customer/profile",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4111",
+              "path": [
+                "api",
+                "v1",
+                "customer",
+                "profile"
+              ]
+            }
+          },
+          "response": []
         }
       ]
     }
