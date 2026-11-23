@@ -78,9 +78,31 @@ Content-Type: application/json
   "balance": 0.01
 }
 
+### 05 - Deposit - Positive - Above Minimum Amount
+### 05 - Пополнение счёта - Позитивный - Сумма выше минимальной
+POST http://localhost:4111/api/v1/accounts/deposit
+Authorization: Basic dGVzdHVzZXI6VGVzdDEyMzQk
+Content-Type: application/json
 
-### 05 - Deposit - Positive - Maximum Amount
-### 05 - Пополнение счёта - Позитивный - Максимальная сумма
+{
+  "id": 1,
+  "balance": 0.02
+}
+
+### 06 - Deposit - Positive - Below Maximum Amount
+### 06 - Пополнение счёта - Позитивный - Сумма ниже максимальной
+POST http://localhost:4111/api/v1/accounts/deposit
+Authorization: Basic dGVzdHVzZXI6VGVzdDEyMzQk
+Content-Type: application/json
+
+{
+  "id": 1,
+  "balance": 4999.99
+}
+
+
+### 07 - Deposit - Positive - Maximum Amount
+### 07 - Пополнение счёта - Позитивный - Максимальная сумма
 POST http://localhost:4111/api/v1/accounts/deposit
 Authorization: Basic dGVzdHVzZXI6VGVzdDEyMzQk
 Content-Type: application/json
@@ -91,8 +113,8 @@ Content-Type: application/json
 }
 
 
-### 06 - Deposit - Negative - Above Maximum
-### 06 - Пополнение счёта - Негативный - Сумма выше максимальной
+### 08 - Deposit - Negative - Above Maximum
+### 08 - Пополнение счёта - Негативный - Сумма выше максимальной
 POST http://localhost:4111/api/v1/accounts/deposit
 Authorization: Basic dGVzdHVzZXI6VGVzdDEyMzQk
 Content-Type: application/json
@@ -103,8 +125,8 @@ Content-Type: application/json
 }
 
 
-### 07 - Deposit - Negative - Negative Amount
-### 07 - Пополнение счёта - Негативный - Отрицательная сумма
+### 09 - Deposit - Negative - Negative Amount
+### 09 - Пополнение счёта - Негативный - Отрицательная сумма
 POST http://localhost:4111/api/v1/accounts/deposit
 Authorization: Basic dGVzdHVzZXI6VGVzdDEyMzQk
 Content-Type: application/json
@@ -115,8 +137,8 @@ Content-Type: application/json
 }
 
 
-### 08 - Deposit - Negative - Missing Balance
-### 08 - Пополнение счёта - Негативный - Отсутствует сумма
+### 10 - Deposit - Negative - Missing Balance
+### 10 - Пополнение счёта - Негативный - Отсутствует сумма
 POST http://localhost:4111/api/v1/accounts/deposit
 Authorization: Basic dGVzdHVzZXI6VGVzdDEyMzQk
 Content-Type: application/json
@@ -126,8 +148,8 @@ Content-Type: application/json
 }
 
 
-### 09 - Deposit - Negative - Missing ID
-### 09 - Пополнение счёта - Негативный - Отсутствует ID счёта
+### 11 - Deposit - Negative - Missing ID
+### 11 - Пополнение счёта - Негативный - Отсутствует ID счёта
 POST http://localhost:4111/api/v1/accounts/deposit
 Authorization: Basic dGVzdHVzZXI6VGVzdDEyMzQk
 Content-Type: application/json
@@ -162,9 +184,34 @@ Content-Type: application/json
   "amount": 0.01
 }
 
+### 03 - Transfer - Positive - Above Minimum Amount
+### 03 - Перевод средств - Позитивный - Сумма выше минимальной
+POST http://localhost:4111/api/v1/accounts/transfer
+Authorization: Basic dGVzdHVzZXI6VGVzdDEyMzQk
+Content-Type: application/json
 
-### 03 - Transfer - Positive - Maximum Amount
-### 03 - Перевод средств - Позитивный - Максимальная сумма
+{
+  "senderAccountId": 1,
+  "receiverAccountId": 2,
+  "amount": 0.02
+}
+
+
+### 04 - Transfer - Positive - Below Maximum Amount
+### 04 - Перевод средств - Позитивный - Сумма ниже максимальной
+POST http://localhost:4111/api/v1/accounts/transfer
+Authorization: Basic dGVzdHVzZXI6VGVzdDEyMzQk
+Content-Type: application/json
+
+{
+  "senderAccountId": 1,
+  "receiverAccountId": 2,
+  "amount": 9999.99
+}
+
+
+### 05 - Transfer - Positive - Maximum Amount
+### 05 - Перевод средств - Позитивный - Максимальная сумма
 POST http://localhost:4111/api/v1/accounts/transfer
 Authorization: Basic dGVzdHVzZXI6VGVzdDEyMzQk
 Content-Type: application/json
@@ -176,8 +223,8 @@ Content-Type: application/json
 }
 
 
-### 04 - Transfer - Negative - Zero Amount
-### 04 - Перевод средств - Негативный - Нулевая сумма
+### 06 - Transfer - Negative - Zero Amount
+### 06 - Перевод средств - Негативный - Нулевая сумма
 POST http://localhost:4111/api/v1/accounts/transfer
 Authorization: Basic dGVzdHVzZXI6VGVzdDEyMzQk
 Content-Type: application/json
@@ -189,8 +236,8 @@ Content-Type: application/json
 }
 
 
-### 05 - Transfer - Negative - Below Minimum
-### 05 - Перевод средств - Негативный - Сумма ниже минимальной
+### 07 - Transfer - Negative - Below Minimum
+### 07 - Перевод средств - Негативный - Сумма ниже минимальной
 POST http://localhost:4111/api/v1/accounts/transfer
 Authorization: Basic dGVzdHVzZXI6VGVzdDEyMzQk
 Content-Type: application/json
@@ -202,8 +249,8 @@ Content-Type: application/json
 }
 
 
-### 06 - Transfer - Negative - Above Maximum
-### 06 - Перевод средств - Негативный - Сумма выше максимальной
+### 08 - Transfer - Negative - Above Maximum
+### 08 - Перевод средств - Негативный - Сумма выше максимальной
 POST http://localhost:4111/api/v1/accounts/transfer
 Authorization: Basic dGVzdHVzZXI6VGVzdDEyMzQk
 Content-Type: application/json
@@ -215,8 +262,8 @@ Content-Type: application/json
 }
 
 
-### 07 - Transfer - Negative - Negative Amount
-### 07 - Перевод средств - Негативный - Отрицательная сумма
+### 09 - Transfer - Negative - Negative Amount
+### 09 - Перевод средств - Негативный - Отрицательная сумма
 POST http://localhost:4111/api/v1/accounts/transfer
 Authorization: Basic dGVzdHVzZXI6VGVzdDEyMzQk
 Content-Type: application/json
@@ -228,8 +275,8 @@ Content-Type: application/json
 }
 
 
-### 08 - Transfer - Negative - Insufficient Funds
-### 08 - Перевод средств - Негативный - Недостаточно средств
+### 10 - Transfer - Negative - Insufficient Funds
+### 10 - Перевод средств - Негативный - Недостаточно средств
 POST http://localhost:4111/api/v1/accounts/transfer
 Authorization: Basic dGVzdHVzZXI6VGVzdDEyMzQk
 Content-Type: application/json
@@ -241,8 +288,8 @@ Content-Type: application/json
 }
 
 
-### 09 - Transfer - Negative - Invalid Sender Account
-### 09 - Перевод средств - Негативный - Некорректный счёт отправителя
+### 11 - Transfer - Negative - Invalid Sender Account
+### 11 - Перевод средств - Негативный - Некорректный счёт отправителя
 POST http://localhost:4111/api/v1/accounts/transfer
 Authorization: Basic dGVzdHVzZXI6VGVzdDEyMzQk
 Content-Type: application/json
@@ -254,8 +301,8 @@ Content-Type: application/json
 }
 
 
-### 10 - Transfer - Negative - Invalid Receiver Account
-### 10 - Перевод средств - Негативный - Некорректный счёт получателя
+### 12 - Transfer - Negative - Invalid Receiver Account
+### 12 - Перевод средств - Негативный - Некорректный счёт получателя
 POST http://localhost:4111/api/v1/accounts/transfer
 Authorization: Basic dGVzdHVzZXI6VGVzdDEyMzQk
 Content-Type: application/json
@@ -267,8 +314,8 @@ Content-Type: application/json
 }
 
 
-### 11 - Transfer - Positive - Same Account
-### 11 - Перевод средств - Позитивный - Перевод на тот же счёт
+### 13 - Transfer - Positive - Same Account
+### 13 - Перевод средств - Позитивный - Перевод на тот же счёт
 POST http://localhost:4111/api/v1/accounts/transfer
 Authorization: Basic dGVzdHVzZXI6VGVzdDEyMzQk
 Content-Type: application/json
