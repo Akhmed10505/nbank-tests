@@ -13,8 +13,9 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.equalTo;
 
-    public class UpdateCustomerProfileTests {
+public class UpdateCustomerProfileTests {
 
         @BeforeAll
         public static void setupRestAssured() {
@@ -41,6 +42,18 @@ import static io.restassured.RestAssured.given;
                     .statusCode(HttpStatus.SC_OK);
         }
 
+        @Test
+        public void userCanGetProfileAfterValidUpdateTest() {
+            given()
+                    .auth().preemptive().basic("testuser", "Test1234$")
+                    .accept(ContentType.JSON)
+                    .when()
+                    .get("http://localhost:4111/api/v1/customer/profile")
+                    .then()
+                    .statusCode(HttpStatus.SC_OK)
+                    .body("name", equalTo("John Smith"));
+        }
+
 
         @Test
         public void userCannotUpdateProfileWithSingleWordNameTest() {
@@ -58,6 +71,18 @@ import static io.restassured.RestAssured.given;
                     .then()
                     .statusCode(HttpStatus.SC_BAD_REQUEST);
         }
+
+    @Test
+    public void userCanGetProfileAfterSingleWordNameTest() {
+        given()
+                .auth().preemptive().basic("testuser", "Test1234$")
+                .accept(ContentType.JSON)
+                .when()
+                .get("http://localhost:4111/api/v1/customer/profile")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("name", equalTo("John Smith"));
+    }
 
 
         @Test
@@ -77,6 +102,18 @@ import static io.restassured.RestAssured.given;
                     .statusCode(HttpStatus.SC_BAD_REQUEST);
         }
 
+    @Test
+    public void userCanGetProfileAfterThreeWordNameTest() {
+        given()
+                .auth().preemptive().basic("testuser", "Test1234$")
+                .accept(ContentType.JSON)
+                .when()
+                .get("http://localhost:4111/api/v1/customer/profile")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("name", equalTo("John Smith"));
+    }
+
 
         @Test
         public void userCannotUpdateProfileWithNumbersInNameTest() {
@@ -94,6 +131,18 @@ import static io.restassured.RestAssured.given;
                     .then()
                     .statusCode(HttpStatus.SC_BAD_REQUEST);
         }
+
+    @Test
+    public void userCanGetProfileAfterNumbersInNameTest() {
+        given()
+                .auth().preemptive().basic("testuser", "Test1234$")
+                .accept(ContentType.JSON)
+                .when()
+                .get("http://localhost:4111/api/v1/customer/profile")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("name", equalTo("John Smith"));
+    }
 
 
         @Test
@@ -113,6 +162,18 @@ import static io.restassured.RestAssured.given;
                     .statusCode(HttpStatus.SC_BAD_REQUEST);
         }
 
+    @Test
+    public void userCanGetProfileAfterMultipleSpacesInNameTest() {
+        given()
+                .auth().preemptive().basic("testuser", "Test1234$")
+                .accept(ContentType.JSON)
+                .when()
+                .get("http://localhost:4111/api/v1/customer/profile")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("name", equalTo("John Smith"));
+    }
+
 
         @Test
         public void userCannotUpdateProfileWithSpecialCharacterInNameTest() {
@@ -130,5 +191,17 @@ import static io.restassured.RestAssured.given;
                     .then()
                     .statusCode(HttpStatus.SC_BAD_REQUEST);
         }
+
+    @Test
+    public void userCanGetProfileAfterSpecialCharacterInNameTest() {
+        given()
+                .auth().preemptive().basic("testuser", "Test1234$")
+                .accept(ContentType.JSON)
+                .when()
+                .get("http://localhost:4111/api/v1/customer/profile")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("name", equalTo("John Smith"));
     }
+}
 
