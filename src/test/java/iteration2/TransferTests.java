@@ -11,6 +11,8 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.closeTo;
+import static org.hamcrest.Matchers.equalTo;
 
 public class TransferTests {
 
@@ -41,6 +43,20 @@ public class TransferTests {
     }
 
     @Test
+    public void userCanGetAccountsAfterValidTransferTest() {
+        given()
+                .auth().preemptive().basic("testuser", "Test1234$")
+                .accept(ContentType.JSON)
+                .when()
+                .get("http://localhost:4111/api/v1/customer/accounts")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("find { it.id == 1 }.balance", equalTo(24699.52f))
+                .body("find { it.id == 2 }.balance", equalTo(501.51f));
+    }
+
+
+    @Test
     public void userCanTransferMinimumAmountTest() {
         given()
                 .auth().preemptive().basic("testuser", "Test1234$")
@@ -57,6 +73,19 @@ public class TransferTests {
                 .post("http://localhost:4111/api/v1/accounts/transfer")
                 .then()
                 .statusCode(HttpStatus.SC_OK);
+    }
+
+    @Test
+    public void userCanGetAccountsAfterMinimumTransferTest() {
+        given()
+                .auth().preemptive().basic("testuser", "Test1234$")
+                .accept(ContentType.JSON)
+                .when()
+                .get("http://localhost:4111/api/v1/customer/accounts")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("find { it.id == 1 }.balance", equalTo(24699.51f))
+                .body("find { it.id == 2 }.balance", equalTo(501.52f));
     }
 
     @Test
@@ -79,6 +108,19 @@ public class TransferTests {
     }
 
     @Test
+    public void userCanGetAccountsAfterAboveMinimumTransferTest() {
+        given()
+                .auth().preemptive().basic("testuser", "Test1234$")
+                .accept(ContentType.JSON)
+                .when()
+                .get("http://localhost:4111/api/v1/customer/accounts")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("find { it.id == 1 }.balance", equalTo(24699.49f))
+                .body("find { it.id == 2 }.balance", equalTo(501.54f));
+    }
+
+    @Test
     public void userCanTransferBelowMaximumAmountTest() {
         given()
                 .auth().preemptive().basic("testuser", "Test1234$")
@@ -95,6 +137,19 @@ public class TransferTests {
                 .post("http://localhost:4111/api/v1/accounts/transfer")
                 .then()
                 .statusCode(HttpStatus.SC_OK);
+    }
+
+    @Test
+    public void userCanGetAccountsAfterBelowMaximumTransferTest() {
+        given()
+                .auth().preemptive().basic("testuser", "Test1234$")
+                .accept(ContentType.JSON)
+                .when()
+                .get("http://localhost:4111/api/v1/customer/accounts")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("find { it.id == 1 }.balance", equalTo(14699.50f))
+                .body("find { it.id == 2 }.balance", equalTo(10501.53f));
     }
 
     @Test
@@ -117,6 +172,19 @@ public class TransferTests {
     }
 
     @Test
+    public void userCanGetAccountsAfterMaximumTransferTest() {
+        given()
+                .auth().preemptive().basic("testuser", "Test1234$")
+                .accept(ContentType.JSON)
+                .when()
+                .get("http://localhost:4111/api/v1/customer/accounts")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("find { it.id == 1 }.balance", equalTo(4699.50f))
+                .body("find { it.id == 2 }.balance", equalTo(20501.53f));
+    }
+
+    @Test
     public void userCannotTransferZeroAmountTest() {
         given()
                 .auth().preemptive().basic("testuser", "Test1234$")
@@ -133,6 +201,19 @@ public class TransferTests {
                 .post("http://localhost:4111/api/v1/accounts/transfer")
                 .then()
                 .statusCode(HttpStatus.SC_BAD_REQUEST);
+    }
+
+    @Test
+    public void userCanGetAccountsAfterZeroTransferTest() {
+        given()
+                .auth().preemptive().basic("testuser", "Test1234$")
+                .accept(ContentType.JSON)
+                .when()
+                .get("http://localhost:4111/api/v1/customer/accounts")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("find { it.id == 1 }.balance", equalTo(4699.50f))
+                .body("find { it.id == 2 }.balance", equalTo(20501.53f));
     }
 
     @Test
@@ -155,6 +236,20 @@ public class TransferTests {
     }
 
     @Test
+    public void userCanGetAccountsAfterBelowMinimumTransferTest() {
+        given()
+                .auth().preemptive().basic("testuser", "Test1234$")
+                .accept(ContentType.JSON)
+                .when()
+                .get("http://localhost:4111/api/v1/customer/accounts")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("find { it.id == 1 }.balance", equalTo(4699.50f))
+                .body("find { it.id == 2 }.balance", equalTo(20501.53f));
+    }
+
+
+    @Test
     public void userCannotTransferAboveMaximumAmountTest() {
         given()
                 .auth().preemptive().basic("testuser", "Test1234$")
@@ -171,6 +266,19 @@ public class TransferTests {
                 .post("http://localhost:4111/api/v1/accounts/transfer")
                 .then()
                 .statusCode(HttpStatus.SC_BAD_REQUEST);
+    }
+
+    @Test
+    public void userCanGetAccountsAfterAboveMaximumTransferTest() {
+        given()
+                .auth().preemptive().basic("testuser", "Test1234$")
+                .accept(ContentType.JSON)
+                .when()
+                .get("http://localhost:4111/api/v1/customer/accounts")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("find { it.id == 1 }.balance", equalTo(4699.50f))
+                .body("find { it.id == 2 }.balance", equalTo(20501.53f));
     }
 
     @Test
@@ -193,6 +301,19 @@ public class TransferTests {
     }
 
     @Test
+    public void userCanGetAccountsAfterNegativeTransferTest() {
+        given()
+                .auth().preemptive().basic("testuser", "Test1234$")
+                .accept(ContentType.JSON)
+                .when()
+                .get("http://localhost:4111/api/v1/customer/accounts")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("find { it.id == 1 }.balance", equalTo(4699.50f))
+                .body("find { it.id == 2 }.balance", equalTo(20501.53f));
+    }
+
+    @Test
     public void userCannotTransferWithInsufficientFundsTest() {
         given()
                 .auth().preemptive().basic("testuser", "Test1234$")
@@ -209,6 +330,19 @@ public class TransferTests {
                 .post("http://localhost:4111/api/v1/accounts/transfer")
                 .then()
                 .statusCode(HttpStatus.SC_BAD_REQUEST);
+    }
+
+    @Test
+    public void userCanGetAccountsAfterInsufficientFundsTransferTest() {
+        given()
+                .auth().preemptive().basic("testuser", "Test1234$")
+                .accept(ContentType.JSON)
+                .when()
+                .get("http://localhost:4111/api/v1/customer/accounts")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("find { it.id == 1 }.balance", equalTo(4699.50f))
+                .body("find { it.id == 2 }.balance", equalTo(20501.53f));
     }
 
     @Test
@@ -231,6 +365,20 @@ public class TransferTests {
     }
 
     @Test
+    public void userCanGetAccountsAfterInvalidSenderTransferTest() {
+        given()
+                .auth().preemptive().basic("testuser", "Test1234$")
+                .accept(ContentType.JSON)
+                .when()
+                .get("http://localhost:4111/api/v1/customer/accounts")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("find { it.id == 1 }.balance", equalTo(4699.50f))
+                .body("find { it.id == 2 }.balance", equalTo(20501.53f));
+    }
+
+
+    @Test
     public void userCannotTransferToInvalidReceiverAccountTest() {
         given()
                 .auth().preemptive().basic("testuser", "Test1234$")
@@ -250,6 +398,19 @@ public class TransferTests {
     }
 
     @Test
+    public void userCanGetAccountsAfterInvalidReceiverTransferTest() {
+        given()
+                .auth().preemptive().basic("testuser", "Test1234$")
+                .accept(ContentType.JSON)
+                .when()
+                .get("http://localhost:4111/api/v1/customer/accounts")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("find { it.id == 1 }.balance", equalTo(4699.50f))
+                .body("find { it.id == 2 }.balance", equalTo(20501.53f));
+    }
+
+    @Test
     public void userCanTransferToSameAccountTest() {
         given()
                 .auth().preemptive().basic("testuser", "Test1234$")
@@ -266,5 +427,18 @@ public class TransferTests {
                 .post("http://localhost:4111/api/v1/accounts/transfer")
                 .then()
                 .statusCode(HttpStatus.SC_OK);
+    }
+
+    @Test
+    public void userCanGetAccountsAfterSameAccountTransferTest() {
+        given()
+                .auth().preemptive().basic("testuser", "Test1234$")
+                .accept(ContentType.JSON)
+                .when()
+                .get("http://localhost:4111/api/v1/customer/accounts")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("find { it.id == 1 }.balance", equalTo(4699.50f))
+                .body("find { it.id == 2 }.balance", equalTo(20501.53f));
     }
 }
