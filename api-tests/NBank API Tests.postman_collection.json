@@ -364,7 +364,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "\"id\": 1,\r\n  \"balance\": 0.02",
+              "raw": "{\n  \"id\": 1,\n  \"balance\": 0.02\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -395,7 +395,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "\"id\": 1,\r\n  \"balance\": 4999.99",
+              "raw": "{\n  \"id\": 1,\n  \"balance\": 4999.99\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -703,7 +703,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "\"senderAccountId\": 1,\r\n  \"receiverAccountId\": 2,\r\n  \"amount\": 0.02",
+              "raw": "{\n  \"senderAccountId\": 1,\n  \"receiverAccountId\": 2,\n  \"amount\": 0.02\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -734,7 +734,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "\"senderAccountId\": 1,\r\n  \"receiverAccountId\": 2,\r\n  \"amount\": 9999.99",
+              "raw": "{\n  \"senderAccountId\": 1,\n  \"receiverAccountId\": 2,\n  \"amount\": 9999.99\n}",
               "options": {
                 "raw": {
                   "language": "json"
