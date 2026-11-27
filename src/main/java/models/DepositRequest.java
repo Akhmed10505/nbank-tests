@@ -1,6 +1,7 @@
 package models;
 
 
+import jdk.jshell.Snippet;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,4 +14,6 @@ import lombok.NoArgsConstructor;
 public class DepositRequest extends BaseModel {
     private long id;
     private Double balance;
+
+
 }

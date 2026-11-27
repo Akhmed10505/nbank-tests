@@ -1,351 +1,87 @@
 package iteration2;
 
-import io.restassured.RestAssured;
-import io.restassured.filter.log.RequestLoggingFilter;
-import io.restassured.filter.log.ResponseLoggingFilter;
-import io.restassured.http.ContentType;
-import org.apache.http.HttpStatus;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import io.restassured.response.ValidatableResponse;
+import io.restassured.specification.ResponseSpecification;
+import models.DepositRequest;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import requests.CustomerAccountsRequester;
+import requests.DepositRequester;
+import specs.RequestSpecs;
+import specs.ResponseSpecs;
+import testdata.TestData;
 
-import java.util.List;
 
-import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.equalTo;
+import java.util.stream.Stream;
+
+
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.within;
+
 
 public class DepositTests {
 
-    @BeforeAll
-    public static void setupRestAssured() {
-        RestAssured.filters(List.of(new RequestLoggingFilter(), new ResponseLoggingFilter()));
+    public static Stream<Arguments> validDepositCases() {
+        return Stream.of(
+                Arguments.of("минимальный депозит", TestData.MIN_AMOUNT),
+                Arguments.of("выше минимального", TestData.AMOUNT_ABOVE_MINIMUM),
+                Arguments.of("ниже максимального", TestData.DEPOSIT_BELOW_MAXIMUM),
+                Arguments.of("максимальный депозит", TestData.MAX_DEPOSIT_AMOUNT)
+        );
     }
 
-    @Test
-    public void userCanDepositValidAmountTest() {
-
-        given()
-                .auth().preemptive().basic("testuser", "Test1234$")
-                .contentType(ContentType.JSON)
-                .accept(ContentType.JSON)
-                .body("""
-                        {
-                        "id": 1,
-                        "balance": 100.5
-                        }
-                        """)
-                .when()
-                .post("http://localhost:4111/api/v1/accounts/deposit")
-                .then()
-                .statusCode(HttpStatus.SC_OK);
+    public static Stream<Arguments> invalidDepositCases() {
+        return Stream.of(
+                Arguments.of("нулевой депозит", 0.0),
+                Arguments.of("ниже минимального", TestData.AMOUNT_BELOW_MINIMUM),
+                Arguments.of("выше максимального", TestData.DEPOSIT_ABOVE_MAXIMUM),
+                Arguments.of("отрицательный депозит", -1.0)
+        );
     }
 
-    @Test
-    public void getAccountAfterValidDepositTest() {
+    @ParameterizedTest(name = "Успешное пополнение: {0}")
+    @MethodSource("validDepositCases")
+    public void userCanDepositValidAmount(String caseName, double amount) {
+        double balanceBefore = getBalance(TestData.FIRST_ACCOUNT_ID);
 
-        given()
-                .auth().preemptive().basic("testuser", "Test1234$")
-                .when()
-                .get("http://localhost:4111/api/v1/customer/accounts")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body("find { it.id == 1 }.balance", equalTo(100.5f));
+        sendDeposit(amount, ResponseSpecs.returnsOk());
+
+        double balanceAfter = getBalance(TestData.FIRST_ACCOUNT_ID);
+
+        assertThat(balanceAfter - balanceBefore)
+                .isCloseTo(amount, within(0.001));
     }
 
-    @Test
-    public void userCannotDepositZeroAmountTest() {
-        given()
-                .auth().preemptive().basic("testuser", "Test1234$")
-                .contentType(ContentType.JSON)
-                .accept(ContentType.JSON)
-                .body("""
-                        {
-                        "id": 1,
-                        "balance": 0
-                        }
-                        """)
-                .when()
-                .post("http://localhost:4111/api/v1/accounts/deposit")
-                .then()
-                .statusCode(HttpStatus.SC_BAD_REQUEST);
+    @ParameterizedTest(name = "Отклонение пополнения: {0}")
+    @MethodSource("invalidDepositCases")
+    public void userCannotDepositInvalidAmount(String caseName, double amount) {
+        double balanceBefore = getBalance(TestData.FIRST_ACCOUNT_ID);
+
+        sendDeposit(amount, ResponseSpecs.returnsBadRequest());
+
+        double balanceAfter = getBalance(TestData.FIRST_ACCOUNT_ID);
+
+        assertThat(balanceAfter)
+                .isCloseTo(balanceBefore, within(0.001));
     }
 
-    @Test
-    public void getAccountAfterZeroDepositTest() {
-
-        given()
-                .auth().preemptive().basic("testuser", "Test1234$")
-                .when()
-                .get("http://localhost:4111/api/v1/customer/accounts")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body("find { it.id == 1 }.balance", equalTo(100.5f));
+    private void sendDeposit(double amount, ResponseSpecification responseSpecification) {
+        new DepositRequester(RequestSpecs.userSpec(),
+                responseSpecification)
+                .post(DepositRequest.builder()
+                        .id(TestData.FIRST_ACCOUNT_ID)
+                        .balance(amount)
+                        .build());
     }
 
-    @Test
-    public void userCannotDepositBelowMinimumAmountTest() {
-        given()
-                .auth().preemptive().basic("testuser", "Test1234$")
-                .contentType(ContentType.JSON)
-                .accept(ContentType.JSON)
-                .body("""
-                    {
-                      "id": 1,
-                      "balance": 0.001
-                    }
-                    """)
-                .when()
-                .post("http://localhost:4111/api/v1/accounts/deposit")
-                .then()
-                .statusCode(HttpStatus.SC_BAD_REQUEST);
-    }
+    private double getBalance(long accountId) {
+        ValidatableResponse response = new CustomerAccountsRequester(
+                RequestSpecs.userSpec(), ResponseSpecs.returnsOk())
+                .get();
 
-    @Test
-    public void getAccountAfterBelowMinimumDepositTest() {
-
-        given()
-                .auth().preemptive().basic("testuser", "Test1234$")
-                .when()
-                .get("http://localhost:4111/api/v1/customer/accounts")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body("find { it.id == 1 }.balance", equalTo(100.5f));
-    }
-
-    @Test
-    public void userCanDepositMinimumAmountTest() {
-        given()
-                .auth().preemptive().basic("testuser", "Test1234$")
-                .contentType(ContentType.JSON)
-                .accept(ContentType.JSON)
-                .body("""
-                    {
-                      "id": 1,
-                      "balance": 0.01
-                    }
-                    """)
-                .when()
-                .post("http://localhost:4111/api/v1/accounts/deposit")
-                .then()
-                .statusCode(HttpStatus.SC_OK);
-    }
-
-    @Test
-    public void getAccountAfterMinimumDepositTest() {
-
-        given()
-                .auth().preemptive().basic("testuser", "Test1234$")
-                .when()
-                .get("http://localhost:4111/api/v1/customer/accounts")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body("find { it.id == 1 }.balance", equalTo(100.51f));
-    }
-
-    @Test
-    public void userCanDepositAboveMinimumAmountTest() {
-        given()
-                .auth().preemptive().basic("testuser", "Test1234$")
-                .contentType(ContentType.JSON)
-                .accept(ContentType.JSON)
-                .body("""
-                    {
-                      "id": 1,
-                      "balance": 0.02
-                    }
-                    """)
-                .when()
-                .post("http://localhost:4111/api/v1/accounts/deposit")
-                .then()
-                .statusCode(HttpStatus.SC_OK);
-    }
-
-    @Test
-    public void getAccountAfterAboveMinimumDepositTest() {
-
-        given()
-                .auth().preemptive().basic("testuser", "Test1234$")
-                .when()
-                .get("http://localhost:4111/api/v1/customer/accounts")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body("find { it.id == 1 }.balance", equalTo(100.53f));
-    }
-
-    @Test
-    public void userCanDepositBelowMaximumAmountTest() {
-        given()
-                .auth().preemptive().basic("testuser", "Test1234$")
-                .contentType(ContentType.JSON)
-                .accept(ContentType.JSON)
-                .body("""
-                    {
-                      "id": 1,
-                      "balance": 4999.99
-                    }
-                    """)
-                .when()
-                .post("http://localhost:4111/api/v1/accounts/deposit")
-                .then()
-                .statusCode(HttpStatus.SC_OK);
-    }
-
-    @Test
-    public void getAccountAfterBelowMaximumDepositTest() {
-
-        given()
-                .auth().preemptive().basic("testuser", "Test1234$")
-                .when()
-                .get("http://localhost:4111/api/v1/customer/accounts")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body("find { it.id == 1 }.balance", equalTo(5100.52f));
-    }
-
-    @Test
-    public void userCanDepositMaximumAmountTest() {
-        given()
-                .auth().preemptive().basic("testuser", "Test1234$")
-                .contentType(ContentType.JSON)
-                .accept(ContentType.JSON)
-                .body("""
-                    {
-                      "id": 1,
-                      "balance": 5000
-                    }
-                    """)
-                .when()
-                .post("http://localhost:4111/api/v1/accounts/deposit")
-                .then()
-                .statusCode(HttpStatus.SC_OK);
-    }
-
-    @Test
-    public void getAccountAfterMaximumDepositTest() {
-
-        given()
-                .auth().preemptive().basic("testuser", "Test1234$")
-                .when()
-                .get("http://localhost:4111/api/v1/customer/accounts")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body("find { it.id == 1 }.balance", equalTo(10100.52f));
-    }
-
-    @Test
-    public void userCannotDepositAboveMaximumAmountTest() {
-        given()
-                .auth().preemptive().basic("testuser", "Test1234$")
-                .contentType(ContentType.JSON)
-                .accept(ContentType.JSON)
-                .body("""
-                    {
-                      "id": 1,
-                      "balance": 5000.01
-                    }
-                    """)
-                .when()
-                .post("http://localhost:4111/api/v1/accounts/deposit")
-                .then()
-                .statusCode(HttpStatus.SC_BAD_REQUEST);
-    }
-
-    @Test
-    public void getAccountAfterAboveMaximumDepositTest() {
-
-        given()
-                .auth().preemptive().basic("testuser", "Test1234$")
-                .when()
-                .get("http://localhost:4111/api/v1/customer/accounts")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body("find { it.id == 1 }.balance", equalTo(10100.52f));
-    }
-
-    @Test
-    public void userCannotDepositNegativeAmountTest() {
-        given()
-                .auth().preemptive().basic("testuser", "Test1234$")
-                .contentType(ContentType.JSON)
-                .accept(ContentType.JSON)
-                .body("""
-                    {
-                      "id": 1,
-                      "balance": -1
-                    }
-                    """)
-                .when()
-                .post("http://localhost:4111/api/v1/accounts/deposit")
-                .then()
-                .statusCode(HttpStatus.SC_BAD_REQUEST);
-    }
-
-    @Test
-    public void getAccountAfterNegativeDepositTest() {
-
-        given()
-                .auth().preemptive().basic("testuser", "Test1234$")
-                .when()
-                .get("http://localhost:4111/api/v1/customer/accounts")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body("find { it.id == 1 }.balance", equalTo(10100.52f));
-    }
-
-    @Test
-    public void userCannotDepositWithoutBalanceTest() {
-        given()
-                .auth().preemptive().basic("testuser", "Test1234$")
-                .contentType(ContentType.JSON)
-                .accept(ContentType.JSON)
-                .body("""
-                    {
-                      "id": 1
-                    }
-                    """)
-                .when()
-                .post("http://localhost:4111/api/v1/accounts/deposit")
-                .then()
-                .statusCode(HttpStatus.SC_INTERNAL_SERVER_ERROR);
-    }
-
-    @Test
-    public void getAccountAfterDepositWithoutBalanceTest() {
-
-        given()
-                .auth().preemptive().basic("testuser", "Test1234$")
-                .when()
-                .get("http://localhost:4111/api/v1/customer/accounts")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body("find { it.id == 1 }.balance", equalTo(10100.52f));
-    }
-
-    @Test
-    public void userCannotDepositWithoutAccountIdTest() {
-        given()
-                .auth().preemptive().basic("testuser", "Test1234$")
-                .contentType(ContentType.JSON)
-                .accept(ContentType.JSON)
-                .body("""
-                    {
-                      "balance": 100
-                    }
-                    """)
-                .when()
-                .post("http://localhost:4111/api/v1/accounts/deposit")
-                .then()
-                .statusCode(HttpStatus.SC_INTERNAL_SERVER_ERROR);
-    }
-
-    @Test
-    public void getAccountAfterDepositWithoutAccountIdTest() {
-
-        given()
-                .auth().preemptive().basic("testuser", "Test1234$")
-                .when()
-                .get("http://localhost:4111/api/v1/customer/accounts")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body("find { it.id == 1 }.balance", equalTo(10100.52f));
+        return response.extract()
+                .jsonPath()
+                .getDouble("find { it.id == " + accountId + " }.balance");
     }
 }
