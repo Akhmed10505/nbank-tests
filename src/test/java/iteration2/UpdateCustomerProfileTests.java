@@ -2,206 +2,67 @@ package iteration2;
 
 
 
-import io.restassured.RestAssured;
-import io.restassured.filter.log.RequestLoggingFilter;
-import io.restassured.filter.log.ResponseLoggingFilter;
-import io.restassured.http.ContentType;
-import org.apache.http.HttpStatus;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import io.restassured.response.ValidatableResponse;
+import io.restassured.specification.ResponseSpecification;
+import models.UpdateCustomerProfileRequest;
 
-import java.util.List;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import requests.UpdateCustomerProfileRequester;
+import specs.RequestSpecs;
+import specs.ResponseSpecs;
 
-import static io.restassured.RestAssured.given;
+
+import java.util.stream.Stream;
 import static org.hamcrest.Matchers.equalTo;
 
 public class UpdateCustomerProfileTests {
 
-        @BeforeAll
-        public static void setupRestAssured() {
-            RestAssured.filters(
-                    List.of(new RequestLoggingFilter(),
-                            new ResponseLoggingFilter()));
-        }
+    public static Stream<Arguments> validNameCases() {
+        return Stream.of(
+                Arguments.of("два слова", "John Smith")
+        );
+    }
 
+    public static Stream<Arguments> invalidNameCases() {
+        return Stream.of(
+                Arguments.of("одно слово", "John"),
+                Arguments.of("три слова", "John Michael Smith"),
+                Arguments.of("цифры в имени", "John123 Smith"),
+                Arguments.of("несколько пробелов", "John  Smith"),
+                Arguments.of("специальный символ", "John@ Smith")
+        );
+    }
 
-        @Test
-        public void userCanUpdateProfileWithValidTwoWordNameTest() {
-            given()
-                    .auth().preemptive().basic("testuser", "Test1234$")
-                    .contentType(ContentType.JSON)
-                    .accept(ContentType.JSON)
-                    .body("""
-                        {
-                          "name": "John Smith"
-                        }
-                        """)
-                    .when()
-                    .put("http://localhost:4111/api/v1/customer/profile")
-                    .then()
-                    .statusCode(HttpStatus.SC_OK);
-        }
+    @ParameterizedTest(name = "Профиль принимает имя: {0}")
+    @MethodSource("validNameCases")
+    public void userCanUpdateProfileWithValidName(String caseName, String name) {
+        updateProfile(name, ResponseSpecs.returnsOk());
 
-        @Test
-        public void userCanGetProfileAfterValidUpdateTest() {
-            given()
-                    .auth().preemptive().basic("testuser", "Test1234$")
-                    .accept(ContentType.JSON)
-                    .when()
-                    .get("http://localhost:4111/api/v1/customer/profile")
-                    .then()
-                    .statusCode(HttpStatus.SC_OK)
-                    .body("name", equalTo("John Smith"));
-        }
+        getProfile()
+                .body("name", equalTo(name));
+    }
 
+    @ParameterizedTest(name = "Профиль отклоняет имя: {0}")
+    @MethodSource("invalidNameCases")
+    public void userCannotUpdateProfileWithInvalidName(String caseName, String name) {
+        updateProfile(name, ResponseSpecs.returnsBadRequest());
 
-        @Test
-        public void userCannotUpdateProfileWithSingleWordNameTest() {
-            given()
-                    .auth().preemptive().basic("testuser", "Test1234$")
-                    .contentType(ContentType.JSON)
-                    .accept(ContentType.JSON)
-                    .body("""
-                        {
-                          "name": "John"
-                        }
-                        """)
-                    .when()
-                    .put("http://localhost:4111/api/v1/customer/profile")
-                    .then()
-                    .statusCode(HttpStatus.SC_BAD_REQUEST);
-        }
-
-    @Test
-    public void userCanGetProfileAfterSingleWordNameTest() {
-        given()
-                .auth().preemptive().basic("testuser", "Test1234$")
-                .accept(ContentType.JSON)
-                .when()
-                .get("http://localhost:4111/api/v1/customer/profile")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
+        getProfile()
                 .body("name", equalTo("John Smith"));
     }
 
-
-        @Test
-        public void userCannotUpdateProfileWithThreeWordNameTest() {
-            given()
-                    .auth().preemptive().basic("testuser", "Test1234$")
-                    .contentType(ContentType.JSON)
-                    .accept(ContentType.JSON)
-                    .body("""
-                        {
-                          "name": "John Michael Smith"
-                        }
-                        """)
-                    .when()
-                    .put("http://localhost:4111/api/v1/customer/profile")
-                    .then()
-                    .statusCode(HttpStatus.SC_BAD_REQUEST);
-        }
-
-    @Test
-    public void userCanGetProfileAfterThreeWordNameTest() {
-        given()
-                .auth().preemptive().basic("testuser", "Test1234$")
-                .accept(ContentType.JSON)
-                .when()
-                .get("http://localhost:4111/api/v1/customer/profile")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body("name", equalTo("John Smith"));
+    private void updateProfile(String name, ResponseSpecification responseSpecification) {
+        new UpdateCustomerProfileRequester(RequestSpecs.userSpec(), responseSpecification)
+                .put(UpdateCustomerProfileRequest.builder()
+                        .name(name)
+                        .build());
     }
 
-
-        @Test
-        public void userCannotUpdateProfileWithNumbersInNameTest() {
-            given()
-                    .auth().preemptive().basic("testuser", "Test1234$")
-                    .contentType(ContentType.JSON)
-                    .accept(ContentType.JSON)
-                    .body("""
-                        {
-                          "name": "John123 Smith"
-                        }
-                        """)
-                    .when()
-                    .put("http://localhost:4111/api/v1/customer/profile")
-                    .then()
-                    .statusCode(HttpStatus.SC_BAD_REQUEST);
-        }
-
-    @Test
-    public void userCanGetProfileAfterNumbersInNameTest() {
-        given()
-                .auth().preemptive().basic("testuser", "Test1234$")
-                .accept(ContentType.JSON)
-                .when()
-                .get("http://localhost:4111/api/v1/customer/profile")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body("name", equalTo("John Smith"));
-    }
-
-
-        @Test
-        public void userCannotUpdateProfileWithMultipleSpacesInNameTest() {
-            given()
-                    .auth().preemptive().basic("testuser", "Test1234$")
-                    .contentType(ContentType.JSON)
-                    .accept(ContentType.JSON)
-                    .body("""
-                        {
-                          "name": "John  Smith"
-                        }
-                        """)
-                    .when()
-                    .put("http://localhost:4111/api/v1/customer/profile")
-                    .then()
-                    .statusCode(HttpStatus.SC_BAD_REQUEST);
-        }
-
-    @Test
-    public void userCanGetProfileAfterMultipleSpacesInNameTest() {
-        given()
-                .auth().preemptive().basic("testuser", "Test1234$")
-                .accept(ContentType.JSON)
-                .when()
-                .get("http://localhost:4111/api/v1/customer/profile")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body("name", equalTo("John Smith"));
-    }
-
-
-        @Test
-        public void userCannotUpdateProfileWithSpecialCharacterInNameTest() {
-            given()
-                    .auth().preemptive().basic("testuser", "Test1234$")
-                    .contentType(ContentType.JSON)
-                    .accept(ContentType.JSON)
-                    .body("""
-                        {
-                          "name": "John@ Smith"
-                        }
-                        """)
-                    .when()
-                    .put("http://localhost:4111/api/v1/customer/profile")
-                    .then()
-                    .statusCode(HttpStatus.SC_BAD_REQUEST);
-        }
-
-    @Test
-    public void userCanGetProfileAfterSpecialCharacterInNameTest() {
-        given()
-                .auth().preemptive().basic("testuser", "Test1234$")
-                .accept(ContentType.JSON)
-                .when()
-                .get("http://localhost:4111/api/v1/customer/profile")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body("name", equalTo("John Smith"));
+    private ValidatableResponse getProfile() {
+        return new UpdateCustomerProfileRequester(RequestSpecs.userSpec(), ResponseSpecs.returnsOk())
+                .get();
     }
 }
 

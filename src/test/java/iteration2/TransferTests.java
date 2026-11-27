@@ -1,444 +1,103 @@
 package iteration2;
 
-import io.restassured.RestAssured;
-import io.restassured.filter.log.RequestLoggingFilter;
-import io.restassured.filter.log.ResponseLoggingFilter;
-import io.restassured.http.ContentType;
-import org.apache.http.HttpStatus;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-
-import java.util.List;
-
-import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.closeTo;
-import static org.hamcrest.Matchers.equalTo;
+import io.restassured.response.ValidatableResponse;
+import io.restassured.specification.ResponseSpecification;
+import models.TransferRequest;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import requests.CustomerAccountsRequester;
+import requests.TransferRequester;
+import specs.RequestSpecs;
+import specs.ResponseSpecs;
+import testdata.TestData;
+import java.util.stream.Stream;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.within;
 
 public class TransferTests {
 
-    @BeforeAll
-    public static void setupRestAssured() {
-        RestAssured.filters(
-                List.of(new RequestLoggingFilter(),
-                        new ResponseLoggingFilter()));
+    public static Stream<Arguments> validTransferCases() {
+        return Stream.of(
+                Arguments.of("минимальный перевод", TestData.MIN_AMOUNT),
+                Arguments.of("выше минимального", TestData.AMOUNT_ABOVE_MINIMUM),
+                Arguments.of("ниже максимального", TestData.TRANSFER_BELOW_MAXIMUM),
+                Arguments.of("максимальный перевод", TestData.MAX_TRANSFER_AMOUNT)
+        );
     }
 
-    @Test
-    public void userCanTransferValidAmountTest() {
-        given()
-                .auth().preemptive().basic("testuser", "Test1234$")
-                .contentType(ContentType.JSON)
-                .accept(ContentType.JSON)
-                .body("""
-                        {
-                          "senderAccountId": 1,
-                          "receiverAccountId": 2,
-                          "amount": 250.75
-                        }
-                        """)
-                .when()
-                .post("http://localhost:4111/api/v1/accounts/transfer")
-                .then()
-                .statusCode(HttpStatus.SC_OK);
+    public static Stream<Arguments> invalidTransferCases() {
+        return Stream.of(
+                Arguments.of("нулевой перевод", 0.0),
+                Arguments.of("ниже минимального", TestData.AMOUNT_BELOW_MINIMUM),
+                Arguments.of("выше максимального", TestData.TRANSFER_ABOVE_MAXIMUM),
+                Arguments.of("отрицательный перевод", -1.0),
+                Arguments.of("недостаточно средств", 40_000.0)
+        );
     }
 
-    @Test
-    public void userCanGetAccountsAfterValidTransferTest() {
-        given()
-                .auth().preemptive().basic("testuser", "Test1234$")
-                .accept(ContentType.JSON)
-                .when()
-                .get("http://localhost:4111/api/v1/customer/accounts")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body("find { it.id == 1 }.balance", equalTo(24699.52f))
-                .body("find { it.id == 2 }.balance", equalTo(501.51f));
+    @ParameterizedTest(name = "Перевод проходит: {0}")
+    @MethodSource("validTransferCases")
+    public void userCanTransferValidAmount(String caseName, double amount) {
+        double senderBalanceBefore = getBalance(TestData.FIRST_ACCOUNT_ID);
+        double receiverBalanceBefore = getBalance(TestData.SECOND_ACCOUNT_ID);
+
+        sendTransfer(
+                TestData.FIRST_ACCOUNT_ID,
+                TestData.SECOND_ACCOUNT_ID,
+                amount,
+                ResponseSpecs.returnsOk());
+
+        double senderBalanceAfter = getBalance(TestData.FIRST_ACCOUNT_ID);
+        double receiverBalanceAfter = getBalance(TestData.SECOND_ACCOUNT_ID);
+
+        assertThat(senderBalanceBefore - senderBalanceAfter)
+                .isCloseTo(amount, within(0.001));
+
+        assertThat(receiverBalanceAfter - receiverBalanceBefore)
+                .isCloseTo(amount, within(0.001));
     }
 
+    @ParameterizedTest(name = "Перевод отклоняется: {0}")
+    @MethodSource("invalidTransferCases")
+    public void userCannotTransferInvalidAmount(String caseName, double amount) {
+        double senderBalanceBefore = getBalance(TestData.FIRST_ACCOUNT_ID);
+        double receiverBalanceBefore = getBalance(TestData.SECOND_ACCOUNT_ID);
 
-    @Test
-    public void userCanTransferMinimumAmountTest() {
-        given()
-                .auth().preemptive().basic("testuser", "Test1234$")
-                .contentType(ContentType.JSON)
-                .accept(ContentType.JSON)
-                .body("""
-                        {
-                          "senderAccountId": 1,
-                          "receiverAccountId": 2,
-                          "amount": 0.01
-                        }
-                        """)
-                .when()
-                .post("http://localhost:4111/api/v1/accounts/transfer")
-                .then()
-                .statusCode(HttpStatus.SC_OK);
+        sendTransfer(
+                TestData.FIRST_ACCOUNT_ID,
+                TestData.SECOND_ACCOUNT_ID,
+                amount,
+                ResponseSpecs.returnsBadRequest()
+        );
+
+        double senderBalanceAfter = getBalance(TestData.FIRST_ACCOUNT_ID);
+        double receiverBalanceAfter = getBalance(TestData.SECOND_ACCOUNT_ID);
+
+        assertThat(senderBalanceAfter)
+                .isCloseTo(senderBalanceBefore, within(0.001));
+
+        assertThat(receiverBalanceAfter)
+                .isCloseTo(receiverBalanceBefore, within(0.001));
     }
 
-    @Test
-    public void userCanGetAccountsAfterMinimumTransferTest() {
-        given()
-                .auth().preemptive().basic("testuser", "Test1234$")
-                .accept(ContentType.JSON)
-                .when()
-                .get("http://localhost:4111/api/v1/customer/accounts")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body("find { it.id == 1 }.balance", equalTo(24699.51f))
-                .body("find { it.id == 2 }.balance", equalTo(501.52f));
+    private void sendTransfer(long senderId, long receiverId, double amount, ResponseSpecification responseSpecification) {
+        new TransferRequester(RequestSpecs.userSpec(), responseSpecification)
+                .post(TransferRequest.builder()
+                        .senderAccountId(senderId)
+                        .receiverAccountId(receiverId)
+                        .amount(amount)
+                        .build());
     }
 
-    @Test
-    public void userCanTransferAboveMinimumAmountTest() {
-        given()
-                .auth().preemptive().basic("testuser", "Test1234$")
-                .contentType(ContentType.JSON)
-                .accept(ContentType.JSON)
-                .body("""
-                        {
-                          "senderAccountId": 1,
-                          "receiverAccountId": 2,
-                          "amount": 0.02
-                        }
-                        """)
-                .when()
-                .post("http://localhost:4111/api/v1/accounts/transfer")
-                .then()
-                .statusCode(HttpStatus.SC_OK);
-    }
+    private double getBalance(long accountId) {
+        ValidatableResponse response = new CustomerAccountsRequester(
+                RequestSpecs.userSpec(),
+                ResponseSpecs.returnsOk())
+                .get();
 
-    @Test
-    public void userCanGetAccountsAfterAboveMinimumTransferTest() {
-        given()
-                .auth().preemptive().basic("testuser", "Test1234$")
-                .accept(ContentType.JSON)
-                .when()
-                .get("http://localhost:4111/api/v1/customer/accounts")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body("find { it.id == 1 }.balance", equalTo(24699.49f))
-                .body("find { it.id == 2 }.balance", equalTo(501.54f));
-    }
-
-    @Test
-    public void userCanTransferBelowMaximumAmountTest() {
-        given()
-                .auth().preemptive().basic("testuser", "Test1234$")
-                .contentType(ContentType.JSON)
-                .accept(ContentType.JSON)
-                .body("""
-                        {
-                          "senderAccountId": 1,
-                          "receiverAccountId": 2,
-                          "amount": 9999.99
-                        }
-                        """)
-                .when()
-                .post("http://localhost:4111/api/v1/accounts/transfer")
-                .then()
-                .statusCode(HttpStatus.SC_OK);
-    }
-
-    @Test
-    public void userCanGetAccountsAfterBelowMaximumTransferTest() {
-        given()
-                .auth().preemptive().basic("testuser", "Test1234$")
-                .accept(ContentType.JSON)
-                .when()
-                .get("http://localhost:4111/api/v1/customer/accounts")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body("find { it.id == 1 }.balance", equalTo(14699.50f))
-                .body("find { it.id == 2 }.balance", equalTo(10501.53f));
-    }
-
-    @Test
-    public void userCanTransferMaximumAmountTest() {
-        given()
-                .auth().preemptive().basic("testuser", "Test1234$")
-                .contentType(ContentType.JSON)
-                .accept(ContentType.JSON)
-                .body("""
-                        {
-                          "senderAccountId": 1,
-                          "receiverAccountId": 2,
-                          "amount": 10000
-                        }
-                        """)
-                .when()
-                .post("http://localhost:4111/api/v1/accounts/transfer")
-                .then()
-                .statusCode(HttpStatus.SC_OK);
-    }
-
-    @Test
-    public void userCanGetAccountsAfterMaximumTransferTest() {
-        given()
-                .auth().preemptive().basic("testuser", "Test1234$")
-                .accept(ContentType.JSON)
-                .when()
-                .get("http://localhost:4111/api/v1/customer/accounts")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body("find { it.id == 1 }.balance", equalTo(4699.50f))
-                .body("find { it.id == 2 }.balance", equalTo(20501.53f));
-    }
-
-    @Test
-    public void userCannotTransferZeroAmountTest() {
-        given()
-                .auth().preemptive().basic("testuser", "Test1234$")
-                .contentType(ContentType.JSON)
-                .accept(ContentType.JSON)
-                .body("""
-                        {
-                          "senderAccountId": 1,
-                          "receiverAccountId": 2,
-                          "amount": 0
-                        }
-                        """)
-                .when()
-                .post("http://localhost:4111/api/v1/accounts/transfer")
-                .then()
-                .statusCode(HttpStatus.SC_BAD_REQUEST);
-    }
-
-    @Test
-    public void userCanGetAccountsAfterZeroTransferTest() {
-        given()
-                .auth().preemptive().basic("testuser", "Test1234$")
-                .accept(ContentType.JSON)
-                .when()
-                .get("http://localhost:4111/api/v1/customer/accounts")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body("find { it.id == 1 }.balance", equalTo(4699.50f))
-                .body("find { it.id == 2 }.balance", equalTo(20501.53f));
-    }
-
-    @Test
-    public void userCannotTransferBelowMinimumAmountTest() {
-        given()
-                .auth().preemptive().basic("testuser", "Test1234$")
-                .contentType(ContentType.JSON)
-                .accept(ContentType.JSON)
-                .body("""
-                        {
-                          "senderAccountId": 1,
-                          "receiverAccountId": 2,
-                          "amount": 0.001
-                        }
-                        """)
-                .when()
-                .post("http://localhost:4111/api/v1/accounts/transfer")
-                .then()
-                .statusCode(HttpStatus.SC_BAD_REQUEST);
-    }
-
-    @Test
-    public void userCanGetAccountsAfterBelowMinimumTransferTest() {
-        given()
-                .auth().preemptive().basic("testuser", "Test1234$")
-                .accept(ContentType.JSON)
-                .when()
-                .get("http://localhost:4111/api/v1/customer/accounts")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body("find { it.id == 1 }.balance", equalTo(4699.50f))
-                .body("find { it.id == 2 }.balance", equalTo(20501.53f));
-    }
-
-
-    @Test
-    public void userCannotTransferAboveMaximumAmountTest() {
-        given()
-                .auth().preemptive().basic("testuser", "Test1234$")
-                .contentType(ContentType.JSON)
-                .accept(ContentType.JSON)
-                .body("""
-                        {
-                          "senderAccountId": 1,
-                          "receiverAccountId": 2,
-                          "amount": 10000.01
-                        }
-                        """)
-                .when()
-                .post("http://localhost:4111/api/v1/accounts/transfer")
-                .then()
-                .statusCode(HttpStatus.SC_BAD_REQUEST);
-    }
-
-    @Test
-    public void userCanGetAccountsAfterAboveMaximumTransferTest() {
-        given()
-                .auth().preemptive().basic("testuser", "Test1234$")
-                .accept(ContentType.JSON)
-                .when()
-                .get("http://localhost:4111/api/v1/customer/accounts")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body("find { it.id == 1 }.balance", equalTo(4699.50f))
-                .body("find { it.id == 2 }.balance", equalTo(20501.53f));
-    }
-
-    @Test
-    public void userCannotTransferNegativeAmountTest() {
-        given()
-                .auth().preemptive().basic("testuser", "Test1234$")
-                .contentType(ContentType.JSON)
-                .accept(ContentType.JSON)
-                .body("""
-                        {
-                          "senderAccountId": 1,
-                          "receiverAccountId": 2,
-                          "amount": -1
-                        }
-                        """)
-                .when()
-                .post("http://localhost:4111/api/v1/accounts/transfer")
-                .then()
-                .statusCode(HttpStatus.SC_BAD_REQUEST);
-    }
-
-    @Test
-    public void userCanGetAccountsAfterNegativeTransferTest() {
-        given()
-                .auth().preemptive().basic("testuser", "Test1234$")
-                .accept(ContentType.JSON)
-                .when()
-                .get("http://localhost:4111/api/v1/customer/accounts")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body("find { it.id == 1 }.balance", equalTo(4699.50f))
-                .body("find { it.id == 2 }.balance", equalTo(20501.53f));
-    }
-
-    @Test
-    public void userCannotTransferWithInsufficientFundsTest() {
-        given()
-                .auth().preemptive().basic("testuser", "Test1234$")
-                .contentType(ContentType.JSON)
-                .accept(ContentType.JSON)
-                .body("""
-                        {
-                          "senderAccountId": 1,
-                          "receiverAccountId": 2,
-                          "amount": 6000
-                        }
-                        """)
-                .when()
-                .post("http://localhost:4111/api/v1/accounts/transfer")
-                .then()
-                .statusCode(HttpStatus.SC_BAD_REQUEST);
-    }
-
-    @Test
-    public void userCanGetAccountsAfterInsufficientFundsTransferTest() {
-        given()
-                .auth().preemptive().basic("testuser", "Test1234$")
-                .accept(ContentType.JSON)
-                .when()
-                .get("http://localhost:4111/api/v1/customer/accounts")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body("find { it.id == 1 }.balance", equalTo(4699.50f))
-                .body("find { it.id == 2 }.balance", equalTo(20501.53f));
-    }
-
-    @Test
-    public void userCannotTransferFromInvalidSenderAccountTest() {
-        given()
-                .auth().preemptive().basic("testuser", "Test1234$")
-                .contentType(ContentType.JSON)
-                .accept(ContentType.JSON)
-                .body("""
-                        {
-                          "senderAccountId": 999,
-                          "receiverAccountId": 2,
-                          "amount": 100
-                        }
-                        """)
-                .when()
-                .post("http://localhost:4111/api/v1/accounts/transfer")
-                .then()
-                .statusCode(HttpStatus.SC_FORBIDDEN);
-    }
-
-    @Test
-    public void userCanGetAccountsAfterInvalidSenderTransferTest() {
-        given()
-                .auth().preemptive().basic("testuser", "Test1234$")
-                .accept(ContentType.JSON)
-                .when()
-                .get("http://localhost:4111/api/v1/customer/accounts")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body("find { it.id == 1 }.balance", equalTo(4699.50f))
-                .body("find { it.id == 2 }.balance", equalTo(20501.53f));
-    }
-
-
-    @Test
-    public void userCannotTransferToInvalidReceiverAccountTest() {
-        given()
-                .auth().preemptive().basic("testuser", "Test1234$")
-                .contentType(ContentType.JSON)
-                .accept(ContentType.JSON)
-                .body("""
-                        {
-                          "senderAccountId": 1,
-                          "receiverAccountId": 999,
-                          "amount": 100
-                        }
-                        """)
-                .when()
-                .post("http://localhost:4111/api/v1/accounts/transfer")
-                .then()
-                .statusCode(HttpStatus.SC_BAD_REQUEST);
-    }
-
-    @Test
-    public void userCanGetAccountsAfterInvalidReceiverTransferTest() {
-        given()
-                .auth().preemptive().basic("testuser", "Test1234$")
-                .accept(ContentType.JSON)
-                .when()
-                .get("http://localhost:4111/api/v1/customer/accounts")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body("find { it.id == 1 }.balance", equalTo(4699.50f))
-                .body("find { it.id == 2 }.balance", equalTo(20501.53f));
-    }
-
-    @Test
-    public void userCanTransferToSameAccountTest() {
-        given()
-                .auth().preemptive().basic("testuser", "Test1234$")
-                .contentType(ContentType.JSON)
-                .accept(ContentType.JSON)
-                .body("""
-                        {
-                          "senderAccountId": 1,
-                          "receiverAccountId": 1,
-                          "amount": 100
-                        }
-                        """)
-                .when()
-                .post("http://localhost:4111/api/v1/accounts/transfer")
-                .then()
-                .statusCode(HttpStatus.SC_OK);
-    }
-
-    @Test
-    public void userCanGetAccountsAfterSameAccountTransferTest() {
-        given()
-                .auth().preemptive().basic("testuser", "Test1234$")
-                .accept(ContentType.JSON)
-                .when()
-                .get("http://localhost:4111/api/v1/customer/accounts")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body("find { it.id == 1 }.balance", equalTo(4699.50f))
-                .body("find { it.id == 2 }.balance", equalTo(20501.53f));
+        return response.extract()
+                .jsonPath()
+                .getDouble("find { it.id == " + accountId + " }.balance");
     }
 }
